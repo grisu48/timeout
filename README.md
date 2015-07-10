@@ -16,9 +16,12 @@ TIMEOUT is given in seconds
 PROGRAM is the program that is executed with the given timeout
 ARGUMENTS are optional arguments passed to the program
 
-## Compilation
+## Compile
 
 * make && sudo make install
+
+## Screenshot
+![alt tag](http://www.feldspaten.org/wp-content/uploads/2015/07/timeout.png)
 
 ## License
 
