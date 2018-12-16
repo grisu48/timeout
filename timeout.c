@@ -10,7 +10,7 @@
  * =============================================================================
  */
 
-#define VERSION "1.1"
+#define VERSION "1.2"
 
 
 #include <stdio.h>
@@ -71,7 +71,7 @@ static char* strappend(char* c1, char* c2) {
 	if(c1 == NULL) {
 		const size_t len = strlen(c2);
 		result = (char*)malloc(sizeof(char)*(len+1));
-		strncpy(result, c2, len);
+		strcpy(result, c2);
 		result[len] = '\0';
 	} else {
 		const size_t len1 = strlen(c1);
@@ -79,9 +79,9 @@ static char* strappend(char* c1, char* c2) {
 		const size_t len = 1 + len1 + len2;
 		
 		result = (char*)malloc(sizeof(char)*(len+1));
-		strncpy(result, c1, len1);
+		strcpy(result, c1);
 		result[len1] = ' ';
-		strncpy(result+len1+1, c2, len2);
+		strncpy(result+len1+1, c2, len2+1);
 		result[len] = '\0';
 		free(c1);
 	}
@@ -240,7 +240,7 @@ static void printHelp(const char* progname) {
 	printf("  e.g. Execute the program cat with a timeout of 5 seconds:\n");
 	printf("    %s 5 cat\n", progname);
 	printf("\n");
-	printf("2015, Felix Niederwanger, Version %s\n", VERSION);
+	printf("2018, Felix Niederwanger, Version %s\n", VERSION);
 }
 
 static void terminate_process(void) {
@@ -249,15 +249,15 @@ static void terminate_process(void) {
 	if(proc_pid <= 0) return;
 	else {
 		if(kill9){
-			printf("Killing");
+			if(verbose) printf("Killing");
 			sig = SIGKILL;
 		} else {
-			printf("Terminating");
+			if(verbose) printf("Terminating");
 			sig = SIGTERM;
 		}
-		printf(" process %d ... ", proc_pid);
+		if(verbose) printf(" process %d ... ", proc_pid);
 		kill(proc_pid, sig);
-		printf("done\n");
+		if(verbose) printf("done\n");
 	}
 }
 
@@ -269,6 +269,7 @@ static void sig_handler(int sig_no) {
 			// Timeout
 			printf("TIMEOUT after %ld milliseconds. ", runtime+millis());
 			terminate_process();
+			printf("\n");
 			exit(EXIT_FAILURE);
 			break;
 		case SIGINT:
