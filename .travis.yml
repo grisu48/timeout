@@ -1,8 +1,12 @@
+branches:
+        only:
+                - master
+
 dist:
-	- xenial
+        - xenial
 
 language: c
 compiler:
-	- gcc
+        - gcc
 
 script: make
