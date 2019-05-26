@@ -26,11 +26,12 @@ A example would be
 
 ## Compile
 
-* make && sudo make install
+    make
+    sudo make install    # Installs the program to /usr/local/bin
 
 ## Screenshot
 
-![alt tag](http://www.feldspaten.org/wp-content/uploads/2015/07/timeout.png)
+![alt tag](timeout.png)
 
 ## License
 
