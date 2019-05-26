@@ -10,7 +10,7 @@
  * =============================================================================
  */
 
-#define VERSION "1.2"
+#define VERSION "1.21"
 
 
 #include <stdio.h>
@@ -30,7 +30,7 @@
 
 static unsigned int timeout = 0L;		// Timeout for the comamnd in seconds
 static char* command = NULL;			// Command
-static bool kill9 = false;				// Use SIGKILL instead of SIGTERM
+static int sig_kill = SIGTERM;			// Signal to send to the child
 static pid_t proc_pid = 0;				// Child process id
 static long runtime = 0L;				// Current runtime
 static bool verbose = false;			// Verbosity flag
@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
 				printHelp(argv[0]);
 				return EXIT_SUCCESS;
 			} else if(!strcmp(arg, "-9") || !strcmp(arg, "--kill")) {
-				kill9 = true;
+				sig_kill = SIGKILL;
 			} else if(!strcmp(arg, "-v") || !strcmp(arg, "--verbose")) {
 				verbose = true;
 			} else if(!strcmp(arg, "-d") || !strcmp(arg, "--daemon")) {
@@ -244,19 +244,13 @@ static void printHelp(const char* progname) {
 }
 
 static void terminate_process(void) {
-	int sig;		// Signal
-	
 	if(proc_pid <= 0) return;
 	else {
-		if(kill9){
-			if(verbose) printf("Killing");
-			sig = SIGKILL;
-		} else {
-			if(verbose) printf("Terminating");
-			sig = SIGTERM;
+		if(verbose) printf("Send signal %d to process %d ... ", sig_kill, proc_pid);
+		if(kill(proc_pid, sig_kill) < 0) {
+			fprintf(stderr, "Error sending signal to child: %s\n", strerror(errno));
+			exit(EXIT_FAILURE);
 		}
-		if(verbose) printf(" process %d ... ", proc_pid);
-		kill(proc_pid, sig);
 		if(verbose) printf("done\n");
 	}
 }
@@ -267,15 +261,17 @@ static void sig_handler(int sig_no) {
 	switch(sig_no) {
 		case SIGALRM:
 			// Timeout
-			printf("TIMEOUT after %ld milliseconds. ", runtime+millis());
+			if(verbose)
+				printf("TIMEOUT after %ld milliseconds.\n", runtime+millis());
+			else
+				printf("TIMEOUT\n");
 			terminate_process();
-			printf("\n");
 			exit(EXIT_FAILURE);
 			break;
 		case SIGINT:
 		case SIGTERM:
 			if(proc_pid <= 0) exit(EXIT_FAILURE);
-			printf("Program termination request\n");
+			if(verbose) printf("Program termination request\n");
 			if(proc_pid > 0) kill(proc_pid, sig_no);
 			exit(EXIT_FAILURE);
 			return;
